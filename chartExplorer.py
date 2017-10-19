@@ -168,7 +168,7 @@ class Chart():
             orientation='horizontal', readout=True, readout_format='d',
             value=self._percentile_select.value, description='%:')
         self._percentile_select.observe(self._on_value_change, names='value')
-
+        
         # clear and replace widgets
         clear_output()
         if ipython_version in old_IPython: # old versions don't clear widgets with clear_output()
@@ -199,19 +199,17 @@ class Chart():
         if self._func_select.value == 'median': estimator = np.median
         if self._func_select.value == 'count': estimator = len
         if self._func_select.value == 'percentile': estimator = percentile
-#             print('percentile function is not implemented yet')
-#             return
-            # estimator = np.percentile(a=self, q=self._percentile_select.value)
-        
         
         # chart properties
         if self._chart_select.value == 'bar':
             sns.barplot(data=self.df, x=self._x_select.value, y=self._y_select.value,
                         hue=self._z_select.value, estimator=estimator, ci=None, palette=color)
-
+        
         if self._chart_select.value == 'line':
+            palette = color if self._z_select.value is not None else None
             sns.pointplot(data=self.df, x=self._x_select.value, y=self._y_select.value,
-                          hue=self._z_select.value, estimator=estimator, ci=None)
+                          hue=self._z_select.value, estimator=estimator, ci=None, color=color[0],
+                          palette=palette)
 
         if self._chart_select.value in ['scatter', 'lm']:
             if self._x_select.value is  None:
@@ -300,6 +298,5 @@ class Chart():
         if self.xlabel is not None: self.ax.set_xlabel(self.xlabel)
 
         if self.title is not None: self.ax.set_title(self.title)
-
 
 
