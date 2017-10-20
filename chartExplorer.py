@@ -305,7 +305,7 @@ class Chart():
 
                 self.ax.set_xticklabels(labels)
 
-
+        
 ##  chart type ############################################
 
 
@@ -350,11 +350,11 @@ class Chart():
         Prints data from chart.
         '''
         if self._x_select.value is  None:
-            data = df[self._y_select.value]
+            data = self.df[self._y_select.value]
         elif self._z_select.value is  None:
-            data = df.groupby([self._x_select.value])[self._y_select.value]
+            data = self.df.groupby([self._x_select.value])[self._y_select.value]
         else:
-            data = df.groupby([self._x_select.value, self._z_select.value])[self._y_select.value]
+            data = self.df.groupby([self._x_select.value, self._z_select.value])[self._y_select.value]
 
         if self._func_select.value == 'mean': values = data.mean()
         if self._func_select.value == 'median': values = data.median()
