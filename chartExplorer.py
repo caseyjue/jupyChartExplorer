@@ -15,65 +15,76 @@ class Chart():
     
     '''
     
-    Chart : creates an interactive chart of your data.
+    Creates an interactive chart of your data.
         Ex: chart = Chart(df), where df is a Pandas DataFrame
     
-    df : DataFrame to create an interactive chart from.
+    Parameters
+    ----------
+    df : DataFrame
+        Data to be used to create the interactive chart.
+    x, y, z : string, default None
+        Variable from df to default x, y, and z selector.
+    chart_type : 'bar' | 'line' | 'scatter' | 'lm' | 'box' | 'violin'
+        Type of chart to default for chart type selector.
     
-    x : string of x variable from df or None (starting x variable)
-    
-    y : string of x variable from df (starting y variable)
-    
-    z : string of x variable from df or None (starting z variable)
-    
-    chart_type : string of starting chart, e.g. 'bar'
-    
-    
-    Chart Properties:
-    
-    round : integer to round values by (accepts negatives).
+    Properties
+    ----------
+    round : integer (negative or positive), default 1
+        Rounds values to this many significant decimal places.
         Ex: chart.round = 2
-            chart.round = 3
-            chart.round = -1
-           
-    title : string for chart title or None.
+        Ex: chart.round = 3
+        Ex: chart.round = -1
+    title : string, default None
+        Text for chart title. If None, no title will be shown.
         Ex: chart.title = 'Species Sepal Length'
         Ex: chart.title = None
-
-    xlabel : string for xlabel or None to show x variable.
+    xlabel : string, default None
+        Text for xlabel. If None, x variable will be shown.
         Ex: chart.xlabel = 'Species'
         Ex: chart.xlabel = None
-    
-    ylabel : string for ylabel or None to show y variable.
+    ylabel : string, default None
+        Text for ylabel. If None, y variable will be shown.
         Ex: chart.ylabel = 'Sepal Length'
         Ex: chart.ylabel = None
-
-    ylim : list for y limit min and max or None.
+    ylim : list, default None
+        Specifies the minimum and maximum y axis limits.
         Ex: chart.ylim = [0, 10]
         Ex: chart.ylim = None
-
-    n_counts : boolean to show x-axis n counts.
+    n_counts : boolean, default True
+        Show x-axis n counts.
         Ex: chart.n_counts = True
         Ex: chart.n_counts = False
-        
-    width : integer for plot width
+    width : integer
+        Sets the plot width
         Ex: chart.width = 15
-        
-    height : integer for plot height
+    height : integer
+        Sets the plot height
         Ex: chart.height = 6
-        
-    num_format = 'f' for numeric or '%' for percentages.
+    num_format = 'f' | '%', default 'f'
+        Show data values and y axis ticks as numeric
+        with 'f' or as percentages with '%'
         Ex: chart.num_format = 'f'
         Ex: chart.num_format = '%'
-        
-    labels : boolean to show value labels.
+    labels : boolean, default True
+        Show value labels.
         Ex: chart.labels = True
         Ex: chart.labels = False
+    font_size_multiple : float, default 1.3
+        Change all font sizes on chart. Choose
+        between .5 (small) and 3 (large)
+        Ex: chart.font_size_multiple = 1.1
+    palette : list of hex formatted colors
+        Color palette to use in charts.
+        Ex: chart.palette = ['#1f77b4', '#ff7f0e', '#2ca02c']
+    grid : boolean, default False
+        Show gridlines.
+        Ex: chart.grid = True
 
-    font_size_multiple : float to change font size. Choose
-    between .5 (small) and 3 (large)
-        Ex: chart.font_size_multiple = 1.3
-        
+    Methods
+    -------
+    get_data()
+        Prints data from chart.
+        Ex: chart.get_data()
         
     '''
     
@@ -95,6 +106,9 @@ class Chart():
         self.font_size_multiple = 1.3
         self.title, self.xlabel, self.ylabel = None, None, None
         self.ylim = None
+        self.palette = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+                        '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+        self.grid = False
     
         # widget controls
         self._x_select = widgets.Dropdown(
@@ -128,7 +142,7 @@ class Chart():
                           self._percentile_select]
         for control in self._controls:
             control.observe(self._on_value_change, names='value')
-        
+    
         if ipython_version in old_IPython: # clear_output() for old versions
             display(HBox([self._x_select, self._y_select, self._z_select]))
             display(HBox([self._chart_select, self._func_select, self._percentile_select]))
@@ -140,8 +154,8 @@ class Chart():
         self._get_widgets()
         self._get_chart_data()
         #self._get_chart_layout()
-        
-        
+
+
 ##  widgets  ###############################################
 
     def _get_widgets(self):
@@ -157,7 +171,7 @@ class Chart():
             value=self._func_select.value, description='function:',
             disabled=func_disable)
         self._func_select.observe(self._on_value_change, names='value')
-        
+
         # percentile widget
         if self._func_select.value == 'percentile' and func_disable is False:
             pct_disable = False
@@ -168,7 +182,7 @@ class Chart():
             orientation='horizontal', readout=True, readout_format='d',
             value=self._percentile_select.value, description='%:')
         self._percentile_select.observe(self._on_value_change, names='value')
-        
+
         # clear and replace widgets
         clear_output()
         if ipython_version in old_IPython: # old versions don't clear widgets with clear_output()
@@ -187,8 +201,6 @@ class Chart():
             self.fig, self.ax = plt.subplots(figsize=(self.width,self.height))
         sns.set(font_scale=self.font_size_multiple)
         sns.set_style('whitegrid')
-        color = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-                 '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
 
 
         def percentile(array):
@@ -203,12 +215,12 @@ class Chart():
         # chart properties
         if self._chart_select.value == 'bar':
             sns.barplot(data=self.df, x=self._x_select.value, y=self._y_select.value,
-                        hue=self._z_select.value, estimator=estimator, ci=None, palette=color)
-        
+                        hue=self._z_select.value, estimator=estimator, ci=None, palette=self.palette)
+
         if self._chart_select.value == 'line':
-            palette = color if self._z_select.value is not None else None
+            palette = self.palette if self._z_select.value is not None else None
             sns.pointplot(data=self.df, x=self._x_select.value, y=self._y_select.value,
-                          hue=self._z_select.value, estimator=estimator, ci=None, color=color[0],
+                          hue=self._z_select.value, estimator=estimator, ci=None, color=self.palette[0],
                           palette=palette)
 
         if self._chart_select.value in ['scatter', 'lm']:
@@ -221,25 +233,38 @@ class Chart():
                 return
             reg_boolean = True if self._chart_select.value == 'lm' else False
             sns.lmplot(data=self.df, x=self._x_select.value, y=self._y_select.value,
-                       hue=self._z_select.value, palette=color,
+                       hue=self._z_select.value, palette=self.palette,
                        size=self.height, aspect=self.width / self.height,
                        fit_reg=reg_boolean, x_jitter=.1, y_jitter=.1, scatter_kws={'alpha':0.5})
 
         if self._chart_select.value == 'box':
             sns.boxplot(data=self.df, x=self._x_select.value, y=self._y_select.value,
-                        hue=self._z_select.value, palette=color)
+                        hue=self._z_select.value, palette=self.palette)
 
         if self._chart_select.value == 'violin':
             sns.violinplot(data=self.df, x=self._x_select.value, y=self._y_select.value,
-                           hue=self._z_select.value, palette=color)
+                           hue=self._z_select.value, palette=self.palette)
 
-##  y labels ##############################################
 
-        if self.ylim is not None: self.ax.set_ylim(self.ylim[0], self.ylim[1])
+##  y lim #################################################
+
+        if self.ylim is not None:
+            self.ax.set_ylim(self.ylim[0], self.ylim[1])
+        elif self._chart_select.value in ['bar']:
+            self.ax.set_ylim(0, self.ax.get_ylim()[1] * 1.2)
+        elif self._chart_select.value in ['line']:
+            self.ax.set_ylim(self.ax.get_ylim()[0],
+                             # self.ax.get_ylim()[0] - (self.ax.get_ylim()[1] * .05),
+                             self.ax.get_ylim()[1] * 1.05)
+
+
+
+##  y data labels #########################################
 
         str_format = '{:.' + str(self.round) + str(self.num_format) +'}'
-        height_padding = (self.ax.get_yticks()[-1] - self.ax.get_yticks()[0]) / 50.0
 
+        if self._chart_select.value in ['bar', 'line', 'box', 'violin']:
+            height_padding = (self.ax.get_ylim()[1] - self.ax.get_ylim()[0]) / 50.0
 
         if self.labels is True:
             
@@ -250,7 +275,7 @@ class Chart():
                         self.ax.text(x=0, y=0, s='', ha="center")
                     else:
                         self.ax.text(x=p.get_x()+p.get_width()/2.,
-                                      y=ylab + 0,
+                                      y=ylab + height_padding,
                                       s=str_format.format(ylab),
                                       ha="center")
 
@@ -266,7 +291,7 @@ class Chart():
                                          s=str_format.format(ylab))
 
 
-##  x labels ##############################################
+##  x tick labels #########################################
 
         if self.n_counts is True and self._x_select.value != None:
         
@@ -285,18 +310,66 @@ class Chart():
 
 
 
+##  y tick labels #########################################
+
+        if self._chart_select.value in ['bar', 'line', 'box', 'violin']:
+            self.ax.set_yticklabels([str_format.format(x) for x in self.ax.get_yticks()])
+
+
+##  legend location #######################################
+
+
+        if self._z_select.value is not None:
+            if self._chart_select.value in ['bar', 'line', 'box', 'violin']:
+                self.ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+
+##  x label, y label, title ###############################
+
+        if self.xlabel is not None: self.ax.set_xlabel(self.xlabel)
+        if self.ylabel is not None: self.ax.set_ylabel(self.ylabel)
+        if self.title is not None: self.ax.set_title(self.title)
+
+
+##  gridlines #############################################
+
+        if self._chart_select.value in ['bar', 'line', 'box', 'violin']:
+            if self.grid is True:
+                self.ax.grid(False)
+                self.ax.grid(axis='y')
+            else:
+                self.ax.grid(False)
+                
 
 ##  layout ################################################
 
-        self.ax.set_yticklabels([str_format.format(x) for x in self.ax.get_yticks()])
 
-        if self._z_select.value is not None:
-            self.ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
-        if self.ylabel is not None: self.ax.set_ylabel(self.ylabel)
+    def get_data(self):
+        '''
+        Prints data from chart.
+        '''
+        if self._x_select.value is  None:
+            data = df[self._y_select.value]
+        elif self._z_select.value is  None:
+            data = df.groupby([self._x_select.value])[self._y_select.value]
+        else:
+            data = df.groupby([self._x_select.value, self._z_select.value])[self._y_select.value]
 
-        if self.xlabel is not None: self.ax.set_xlabel(self.xlabel)
+        if self._func_select.value == 'mean': values = data.mean()
+        if self._func_select.value == 'median': values = data.median()
+        if self._func_select.value == 'count': values = data.count()
+        if self._func_select.value == 'percentile': values = data.quantile(self._percentile_select.value / 100.0)
+        
+        value_col = self._func_select.value.title()
+        if self._func_select.value == 'percentile':
+            value_col += '-' + str(self._percentile_select.value)
 
-        if self.title is not None: self.ax.set_title(self.title)
+        new_data = pd.DataFrame({'N' : pd.Series(data.count())})
+        new_data[value_col] = pd.Series(values)
+
+        print(new_data)
+
+
 
 
