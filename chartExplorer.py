@@ -24,7 +24,7 @@ class Chart():
         Data to be used to create the interactive chart.
     x, y, z : string, default None
         Variable from df to default x, y, and z selector.
-    chart_type : 'bar' | 'line' | 'scatter' | 'lm' | 'box' | 'violin'
+    chart_type : 'bar' | 'line' | 'scatter' | 'lm' | 'box' | 'hbox' | 'violin'
         Type of chart to default for chart type selector.
     
     Properties
@@ -133,7 +133,7 @@ class Chart():
             value=25, description='%:')
         
         self._chart_select = widgets.Dropdown(
-            options=['bar', 'line', 'scatter', 'lm', 'box', 'violin'],
+            options=['bar', 'line', 'scatter', 'lm', 'box', 'hbox', 'violin'],
             value=self.chart_type, description='chart type:')
         
         # widget interaction
@@ -197,8 +197,8 @@ class Chart():
     def _get_chart_data(self):
         
         # chart asethetics
-        if self._chart_select.value in ['bar', 'line', 'box', 'violin']: # not lmplot / scatter
-            self.fig, self.ax = plt.subplots(figsize=(self.width,self.height))
+        if self._chart_select.value in ['bar', 'line', 'box', 'hbox', 'violin']: # not lmplot / scatter
+            self.fig, self.ax = plt.subplots(figsize=(self.width, self.height))
         sns.set(font_scale=self.font_size_multiple)
         sns.set_style('whitegrid')
 
@@ -241,6 +241,10 @@ class Chart():
             sns.boxplot(data=self.df, x=self._x_select.value, y=self._y_select.value,
                         hue=self._z_select.value, palette=self.palette)
 
+        if self._chart_select.value == 'hbox':
+            sns.boxplot(data=self.df, x=self._y_select.value, y=self._x_select.value,
+                        hue=self._z_select.value, palette=self.palette, orient='h')
+
         if self._chart_select.value == 'violin':
             sns.violinplot(data=self.df, x=self._x_select.value, y=self._y_select.value,
                            hue=self._z_select.value, palette=self.palette)
@@ -254,7 +258,6 @@ class Chart():
             self.ax.set_ylim(0, self.ax.get_ylim()[1] * 1.2)
         elif self._chart_select.value in ['line']:
             self.ax.set_ylim(self.ax.get_ylim()[0],
-                             # self.ax.get_ylim()[0] - (self.ax.get_ylim()[1] * .05),
                              self.ax.get_ylim()[1] * 1.05)
 
 
@@ -296,16 +299,23 @@ class Chart():
         if self.n_counts is True and self._x_select.value != None:
         
             if self._chart_select.value in ['bar', 'line', 'box', 'violin']:
-
                 labels = []
                 series_string = pd.Series([str(x) for x in self.df[self._x_select.value]])
                 for p in self.ax.get_xticklabels():
                     labels.append(p.get_text() + '\n' +
                                   '(n=' + str((series_string == p.get_text()).sum()) + ')')
-
                 self.ax.set_xticklabels(labels)
-
         
+            # reversed (x is dependent for horizontal charts)
+            if self._chart_select.value in ['hbox']:
+                labels = []
+                series_string = pd.Series([str(x) for x in self.df[self._x_select.value]])
+                for p in self.ax.get_yticklabels():
+                    labels.append(p.get_text() + '\n' +
+                                  '(n=' + str((series_string == p.get_text()).sum()) + ')')
+                self.ax.set_yticklabels(labels)
+
+
 ##  chart type ############################################
 
 
@@ -315,12 +325,15 @@ class Chart():
         if self._chart_select.value in ['bar', 'line', 'box', 'violin']:
             self.ax.set_yticklabels([str_format.format(x) for x in self.ax.get_yticks()])
 
+        # reversed (x is dependent for horizontal charts)
+        if self._chart_select.value in ['hbox']:
+            self.ax.set_xticklabels([str_format.format(x) for x in self.ax.get_xticks()])
 
 ##  legend location #######################################
 
 
         if self._z_select.value is not None:
-            if self._chart_select.value in ['bar', 'line', 'box', 'violin']:
+            if self._chart_select.value in ['bar', 'line', 'box', 'hbox', 'violin']:
                 self.ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
 
@@ -333,14 +346,14 @@ class Chart():
 
 ##  gridlines #############################################
 
-        if self._chart_select.value in ['bar', 'line', 'box', 'violin']:
+        if self._chart_select.value in ['bar', 'line', 'box', 'hbox', 'violin']:
             if self.grid is True:
                 self.ax.grid(False)
                 self.ax.grid(axis='y')
             else:
                 self.ax.grid(False)
-                
 
+            
 ##  layout ################################################
 
 
@@ -367,7 +380,7 @@ class Chart():
 
         new_data = pd.DataFrame({'N' : pd.Series(data.count())})
         new_data[value_col] = pd.Series(values)
-
+        
         print(new_data)
 
 
